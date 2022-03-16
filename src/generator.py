@@ -26,10 +26,11 @@ class Generator(K.Model):
 
     @tf.function
     def call(self, inputs, training):
-        x, inputs = self.input_layer(inputs, training=training)
+        x = self.input_layer(inputs, training=training)
+        inputs = x
         for res_block in self.res_blocks:
             x = res_block[0](x, training=training)
             x = res_block[1](x, training=training)
-            x = res_block[2](x, inputs, training = training)
+            x = res_block[2]((x, inputs), training = training)
         x = self.out(x, training=training)
         return x

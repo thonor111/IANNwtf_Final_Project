@@ -1,12 +1,16 @@
 import tensorflow as tf
 import tensorflow.keras as K
 
+##################################################################
 # Training of the Autoencoder
+##################################################################
 
 
 
 
+##################################################################
 # Training of the GAN
+##################################################################
 
 def train_step(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator, optimizer_discriminator, learning_step):
     '''
@@ -27,8 +31,11 @@ def train_step(generator, discriminator, encoded_sentence, gaussian, sentiment, 
     with tf.GradientTape() as discriminator_tape, tf.GradientTape() as generator_tape:
         # generation = generator(tf.concat((gaussian, sentiment), axis = 0), training=True)
         generation = generator(gaussian, training=True)
-        prediction_fake, prediction_fake_sentiment = discriminator(generation, training=True)
-        prediction_real, prediction_real_sentiment = discriminator(encoded_sentence, training=True)
+        # prediction_fake, prediction_fake_sentiment = discriminator(generation, training=True)
+        predictions_fake = discriminator(generation, training=True)
+        prediction_fake, prediction_fake_sentiment = tf.transpose(predictions_fake)
+        predictions_real = discriminator(encoded_sentence, training=True)
+        prediction_real, prediction_real_sentiment = tf.transpose(predictions_real)
         loss_generator = tf.math.negative(tf.reduce_mean(prediction_fake))
         loss_discriminator = tf.reduce_mean(prediction_fake - prediction_real)
     # calculating the gradients
