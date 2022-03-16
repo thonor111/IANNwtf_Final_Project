@@ -10,17 +10,23 @@ class Discriminator(K.Model):
         '''
         super(Discriminator, self).__init__()
 
-        self.input_layer = K.layers.Dense(100)
+        clipping_value = 0.01
+
+        self.input_layer = K.layers.Dense(100, kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value,
+                                                                                                 clipping_value))
         self.res_blocks = []
         for i in range(40):
             res_block = [
-                K.layers.Dense(100, activation='relu'),
-                K.layers.Dense(100),
+                K.layers.Dense(100, activation='relu',
+                               kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value, clipping_value)),
+                K.layers.Dense(100, activation=None,
+                               kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value, clipping_value)),
                 K.layers.Add()
             ]
             self.res_blocks.append(res_block)
 
-        self.out = K.layers.Dense(1, activation='sigmoid')
+        self.out = K.layers.Dense(2, activation=None, kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value,
+                                                                                                        clipping_value))  # linear activation for the WGAN
 
     @tf.function
     def call(self, inputs, training):
