@@ -21,12 +21,14 @@ test_data = test_data.apply(input_pipeline.prepare_data_GAN)
 ##################################################################
 
 
+
+
 ##################################################################
 # Training of the GAN
 ##################################################################
 
 # Hyperparameters
-num_epochs = 10
+num_epochs_gan = 10
 alpha_generator = 0.00005
 alpha_discriminator = 0.00005
 
@@ -47,7 +49,7 @@ test_losses_generator = []
 
 # We train for num_epochs epochs.
 learning_step = 0
-for epoch in range(num_epochs):
+for epoch in range(num_epochs_gan):
 
 
     # training (and checking in with training)
@@ -55,7 +57,7 @@ for epoch in range(num_epochs):
     epoch_losses_generator = []
     for embedding, sentiment, noise in train_data:
         learning_step += 1
-        train_loss_discriminator, train_loss_generator = training_loop.train_step(generator, discriminator,
+        train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
                                                                                             encoded_sentence=embedding,
                                                                                             gaussian=noise, sentiment=sentiment,
                                                                                             optimizer_generator=optimizer_generator,

@@ -10,7 +10,7 @@ class Generator(K.Model):
         '''
         super(Generator, self).__init__()
 
-        self.embedding_size = 100
+        self.embedding_size = 250
 
         self.input_layer = K.layers.Dense(100)
         self.res_blocks = []

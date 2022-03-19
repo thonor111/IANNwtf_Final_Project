@@ -12,7 +12,7 @@ import tensorflow.keras as K
 # Training of the GAN
 ##################################################################
 
-def train_step(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator, optimizer_discriminator, learning_step):
+def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator, optimizer_discriminator, learning_step):
     '''
     Performs the training step
     Args:
