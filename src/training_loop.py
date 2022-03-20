@@ -5,7 +5,31 @@ import tensorflow.keras as K
 # Training of the Autoencoder
 ##################################################################
 
+# @tf.function
+def train_step_vae(vae, input, target, loss_function, optimizer):
+    """
+    Performs the training step of the VAE
+    Args:
+      vae: the VAE to be trained
+      input: The input of the encoder
+      target: The target of the decoder
+      loss_function: the loss_function to be used
+      optimizer: the optimizer to be used for learning
+    Returns:
+      loss: the loss of the current epoch
+    """
 
+    with tf.GradientTape() as tape:
+        # calculating the prediction of the vae
+        prediction = vae(input, training=True)
+        # calculating the loss of the prediction to the target
+        loss = loss_function(target, prediction)
+    # calculating the gradient
+    gradients = tape.gradient(loss, vae.trainable_variables)
+    # changing the weights
+    optimizer.apply_gradients(zip(gradients, vae.trainable_variables))
+
+    return loss
 
 
 ##################################################################
@@ -14,16 +38,16 @@ import tensorflow.keras as K
 
 def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator, optimizer_discriminator, learning_step):
     '''
-    Performs the training step
+    Performs the training step of the GAN
     Args:
       generator: the generator to be trained
       discriminator: the discriminator to be trained
       encoded_sentence: the encoded embedding of the given sentences
       gaussian: the input of the generator
       sentiment: The sentiment of the sentence to given sentence
-      loss_function: the loss_function to be used
       optimizer_generator: the optimizer to be used by the generator
       optimizer_discriminator: the optimizer to be used by the discriminator
+      learning_step: A counter used to achieve a different number of learning steps for the generator and discriminator
     Returns:
       loss: the loss of the current epoch
   '''
