@@ -18,7 +18,7 @@ input_pipeline = Input_Pipeline()
 input_pipeline.train_tokenizer(train_data)
 
 # preprocess datasplits
-# using the GAn version to be able to test the GAN
+# using the GAN version to be able to test the GAN
 train_data = train_data.apply(input_pipeline.prepare_data_GAN)
 test_data = test_data.apply(input_pipeline.prepare_data_GAN)
 
@@ -49,14 +49,14 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, sentiment, noise in train_data:
+    for embedding, target, sentiment, noise in train_data:
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       input=embedding,
-                                                      target=embedding,
+                                                      target=target,
                                                       loss_function=loss_function_vae,
                                                       optimizer=optimizer_vae)
         epoch_losses_vae.append(train_loss_vae)
-        print(train_loss_vae)
+        print(train_loss_vae.numpy())
 
     # track training loss
     train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
@@ -92,7 +92,7 @@ for epoch in range(num_epochs_gan):
     # training (and checking in with training)
     epoch_losses_discriminator = []
     epoch_losses_generator = []
-    for embedding, sentiment, noise in train_data:
+    for embedding, target, sentiment, noise in train_data:
         learning_step += 1
         train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
                                                                                       encoded_sentence=embedding,

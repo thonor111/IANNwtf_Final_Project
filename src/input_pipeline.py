@@ -31,6 +31,10 @@ class Input_Pipeline():
         # adding noise as input for the GAN
         data = data.map(lambda embedding, sentiment: (embedding, sentiment, tf.random.uniform(shape=[100])))
 
+        data = data.map(
+            lambda embedding, sentiment, noise: (embedding, tf.roll(embedding, shift=-1, axis=0), sentiment, noise))
+
+
         # standard pipeline
         data = data.cache().shuffle(1000).batch(3).prefetch(20)
 
