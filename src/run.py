@@ -56,7 +56,6 @@ for epoch in range(num_epochs_vae):
                                                       loss_function=loss_function_vae,
                                                       optimizer=optimizer_vae)
         epoch_losses_vae.append(train_loss_vae)
-        print(train_loss_vae.numpy())
 
     # track training loss
     train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
@@ -94,6 +93,7 @@ for epoch in range(num_epochs_gan):
     epoch_losses_generator = []
     for embedding, target, sentiment, noise in train_data:
         learning_step += 1
+        encoded_sentence = vae.encode(embedding)
         train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
                                                                                       encoded_sentence=embedding,
                                                                                       gaussian=noise,

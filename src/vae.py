@@ -17,6 +17,10 @@ class VariationalAutoEncoder(K.Model):
 
         return y
 
+    @tf.function
+    def encode(self, inputs, training=False):
+        return self.encoder(inputs, training=training)
+
 
 class Encoder(K.Model):
 
