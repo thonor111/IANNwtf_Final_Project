@@ -49,7 +49,7 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, target, sentiment, noise in train_data:
+    for embedding, target, sentiment, noise in train_data.take(5):
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       input=embedding,
                                                       target=target,

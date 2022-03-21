@@ -40,7 +40,7 @@ class Input_Pipeline():
         with open('vocab.txt', 'w') as f:
             for token in vocab:
                 print(token, file=f)
-        self.tokenizer = text.BertTokenizer('vocab.txt', **bert_tokenizer_params)
+        self.tokenizer = text.BertTokenizer('vocab.txt', **bert_tokenizer_params, token_out_type=tf.int64)
 
     def prepare_data(self, data):
         # tokenizing the text
@@ -70,6 +70,8 @@ class Input_Pipeline():
                                                                              shape=(1,1)), embedding,
                                                                  tf.constant(self.end_token, dtype=tf.int64,
                                                                              shape=(1,1))), axis=0), sentiment))
+
+        data = data.map(lambda embedding, sentiment: (tf.cast(embedding, tf.float32), sentiment))
 
         # adding noise as input for the GAN
         data = data.map(lambda embedding, sentiment: (embedding, sentiment, tf.random.uniform(shape=[100])))

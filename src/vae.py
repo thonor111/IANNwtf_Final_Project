@@ -34,7 +34,7 @@ class Encoder(K.Model):
 
     # @tf.function
     def call(self, inputs, training):
-        x = self.embedding_layer(inputs)
+        # x = self.embedding_layer(inputs)
         x = self.lstm_layer(inputs, training=training)
         y = self.dense_layer(x, training=training)
 
@@ -52,8 +52,8 @@ class Decoder(K.Model):
 
     # @tf.function
     def call(self, inputs, states, training):
-        x = self.embedding_layer(inputs)
-        x, _, _ = self.lstm_layer(x, initial_state=[states, tf.zeros_like(states)], training=training)
+        # x = self.embedding_layer(inputs)
+        x, _, _ = self.lstm_layer(inputs, initial_state=[states, tf.zeros_like(states)], training=training)
         y = self.dense_layer(x, training=training)
 
         return y
