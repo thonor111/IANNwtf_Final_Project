@@ -60,16 +60,18 @@ class Decoder(K.Model):
 
     # @tf.function
     def generate_sentence(self, starting_input, states, training=False):
-        sentence = starting_input.numpy()
-        max_sentence_length =250
+        sentence = tf.cast(tf.squeeze(starting_input, (2)), tf.int64).numpy()
+        max_sentence_length = 250
         current_sentence_length = 0
         memory_state = states
         carry_state = tf.zeros_like(states)
         while current_sentence_length < max_sentence_length:
-            x = self.embedding_layer(starting_input)
-            x, memory_state, carry_state = self.lstm_layer(x, initial_state=[memory_state, carry_state], training=training)
+            # x = self.embedding_layer(starting_input)
+            x, memory_state, carry_state = self.lstm_layer(starting_input, initial_state=[memory_state, carry_state], training=training)
             y = self.dense_layer(x, training=training)
             starting_input = tf.argmax(y, axis=2)
             sentence = np.concatenate((sentence, starting_input.numpy()), axis=1)
+            starting_input = tf.expand_dims(starting_input, -1)
+            starting_input = tf.cast(starting_input, tf.float32)
             current_sentence_length += 1
         return sentence

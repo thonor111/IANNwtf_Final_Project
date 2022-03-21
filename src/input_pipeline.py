@@ -64,7 +64,6 @@ class Input_Pipeline():
         # tokenizing the text
         data = data.map(self.tokenize_data)
 
-        embedding, sentiment = next(iter(data))
         # adding start and end to every sentence
         data = data.map(lambda embedding, sentiment: (tf.concat((tf.constant(self.start_token, dtype=tf.int64,
                                                                              shape=(1,1)), embedding,

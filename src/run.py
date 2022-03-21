@@ -26,7 +26,7 @@ test_data = test_data.apply(input_pipeline.prepare_data_GAN)
 # Training of the Autoencoder
 ##################################################################
 
-num_epochs_vae = 1
+num_epochs_vae = 5
 alpha_vae = 0.001
 
 # Initialize Model
@@ -49,7 +49,7 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, target, sentiment, noise in train_data.take(5):
+    for embedding, target, sentiment, noise in train_data.take(10):
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       input=embedding,
                                                       target=target,
@@ -66,7 +66,7 @@ for epoch in range(num_epochs_vae):
 ##################################################################
 
 # Hyperparameters
-num_epochs_gan = 1
+num_epochs_gan = 5
 alpha_generator = 0.00005
 alpha_discriminator = 0.00005
 
@@ -91,7 +91,7 @@ for epoch in range(num_epochs_gan):
     # training (and checking in with training)
     epoch_losses_discriminator = []
     epoch_losses_generator = []
-    for embedding, target, sentiment, noise in train_data.take(5):
+    for embedding, target, sentiment, noise in train_data.take(20):
         learning_step += 1
         encoded_sentence = vae.encode(embedding)
         train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
@@ -113,19 +113,18 @@ for epoch in range(num_epochs_gan):
 
 for embedding, target, sentiment, noise in test_data.take(2):
     generated_states = generator(noise, training=False)
-    print(f"Shape of the generated states: {generated_states.numpy().shape}")
-    generated_text = vae.decoder.generate_sentence(
-        starting_input=tf.constant(input_pipeline.start_token, dtype=tf.int64,
-                                   shape=(3,1)), states=generated_states, training=False)
-    print(generated_text)
+    start_input = tf.constant(input_pipeline.start_token, dtype=tf.float32, shape=(3,1,1))
 
-    text = input_pipeline.tokenizer_layer(generated_text)
+    generated_text = vae.decoder.generate_sentence(
+        starting_input=start_input, states=generated_states, training=False)
+
+    text = input_pipeline.tokenizer.detokenize(generated_text)
 
     print(text)
 
-    vocabulary = input_pipeline.tokenizer_layer.get_vocabulary(include_special_tokens=False)
-
-    generated_text_string = []
-    for index in generated_text:
-        generated_text.append(vocabulary[index.numpy()])
-    print(generated_text_string)
+    # vocabulary = input_pipeline.tokenizer_layer.get_vocabulary(include_special_tokens=False)
+    #
+    # generated_text_string = []
+    # for index in generated_text:
+    #     generated_text.append(vocabulary[index.numpy()])
+    # print(generated_text_string)
