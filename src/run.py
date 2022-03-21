@@ -26,12 +26,12 @@ test_data = test_data.apply(input_pipeline.prepare_data_GAN)
 # Training of the Autoencoder
 ##################################################################
 
-num_epochs_vae = 10
+num_epochs_vae = 1
 alpha_vae = 0.001
 
 # Initialize Model
-vocab_size = input_pipeline.tokenizer_layer.vocabulary_size()
-embedding_size = 250
+vocab_size = input_pipeline.tokenizer_layer.vocabulary_size() + 2
+embedding_size = 252
 vae = VariationalAutoEncoder(vocab_size=vocab_size, embedding_size=embedding_size)
 
 # optimizer
@@ -49,7 +49,7 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, target, sentiment, noise in train_data:
+    for embedding, target, sentiment, noise in train_data.take(5):
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       input=embedding,
                                                       target=target,
@@ -59,14 +59,14 @@ for epoch in range(num_epochs_vae):
 
     # track training loss
     train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
-
+    print(f"Epoch {epoch} of the VAE ending with an average loss of {tf.reduce_mean(epoch_losses_vae)}")
 
 ##################################################################
 # Training of the GAN
 ##################################################################
 
 # Hyperparameters
-num_epochs_gan = 10
+num_epochs_gan = 1
 alpha_generator = 0.00005
 alpha_discriminator = 0.00005
 
@@ -91,11 +91,11 @@ for epoch in range(num_epochs_gan):
     # training (and checking in with training)
     epoch_losses_discriminator = []
     epoch_losses_generator = []
-    for embedding, target, sentiment, noise in train_data:
+    for embedding, target, sentiment, noise in train_data.take(5):
         learning_step += 1
         encoded_sentence = vae.encode(embedding)
         train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
-                                                                                      encoded_sentence=embedding,
+                                                                                      encoded_sentence=encoded_sentence,
                                                                                       gaussian=noise,
                                                                                       sentiment=sentiment,
                                                                                       optimizer_generator=optimizer_generator,
@@ -107,3 +107,25 @@ for epoch in range(num_epochs_gan):
     # track training loss
     train_losses_discriminator.append(tf.reduce_mean(epoch_losses_discriminator))
     train_losses_generator.append(tf.reduce_mean(epoch_losses_generator))
+    print(
+        f"Epoch {epoch} of the GAN ending with an average Generator loss of {tf.reduce_mean(epoch_losses_generator)} and an average discriminator loss of {tf.reduce_mean(epoch_losses_generator)}")
+
+
+for embedding, target, sentiment, noise in test_data.take(2):
+    generated_states = generator(noise, training=False)
+    print(f"Shape of the generated states: {generated_states.numpy().shape}")
+    generated_text = vae.decoder.generate_sentence(
+        starting_input=tf.constant(input_pipeline.start_token, dtype=tf.int64,
+                                   shape=(3,1)), states=generated_states, training=False)
+    print(generated_text)
+
+    text = input_pipeline.tokenizer_layer(generated_text)
+
+    print(text)
+
+    vocabulary = input_pipeline.tokenizer_layer.get_vocabulary(include_special_tokens=False)
+
+    generated_text_string = []
+    for index in generated_text:
+        generated_text.append(vocabulary[index.numpy()])
+    print(generated_text_string)

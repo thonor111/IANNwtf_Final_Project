@@ -20,7 +20,7 @@ class Generator(K.Model):
             ]
             self.res_blocks.append(res_block)
 
-        self.out = K.layers.Dense(embedding_size, activation='sigmoid')
+        self.out = K.layers.Dense(600, activation='sigmoid')
 
     @tf.function
     def call(self, inputs, training):
