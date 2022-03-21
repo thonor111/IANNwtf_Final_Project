@@ -32,10 +32,10 @@ class Encoder(K.Model):
         self.lstm_layer = K.layers.LSTM(100)
         self.dense_layer = K.layers.Dense(600)
 
-    @tf.function
+    # @tf.function
     def call(self, inputs, training):
         x = self.embedding_layer(inputs)
-        x = self.lstm_layer(x, training=training)
+        x = self.lstm_layer(inputs, training=training)
         y = self.dense_layer(x, training=training)
 
         return y

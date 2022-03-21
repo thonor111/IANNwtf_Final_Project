@@ -15,7 +15,7 @@ train_data, test_data = tfds.load('imdb_reviews', split=['train', 'test[:10%]'],
 
 input_pipeline = Input_Pipeline()
 
-input_pipeline.train_tokenizer(train_data)
+input_pipeline.train_tokenizer(train_data.take(100))
 
 # preprocess datasplits
 # using the GAN version to be able to test the GAN
@@ -30,7 +30,7 @@ num_epochs_vae = 1
 alpha_vae = 0.001
 
 # Initialize Model
-vocab_size = input_pipeline.tokenizer_layer.vocabulary_size() + 2
+vocab_size = input_pipeline.vocab_size
 embedding_size = 252
 vae = VariationalAutoEncoder(vocab_size=vocab_size, embedding_size=embedding_size)
 
@@ -49,7 +49,7 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, target, sentiment, noise in train_data.take(5):
+    for embedding, target, sentiment, noise in train_data:
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       input=embedding,
                                                       target=target,
