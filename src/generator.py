@@ -4,7 +4,7 @@ import tensorflow.keras as K
 
 class Generator(K.Model):
 
-    def __init__(self, embedding_size=250):
+    def __init__(self, state_size=250):
         '''
         Initializes the generator
         '''
@@ -20,7 +20,7 @@ class Generator(K.Model):
             ]
             self.res_blocks.append(res_block)
 
-        self.out = K.layers.Dense(600, activation='sigmoid')
+        self.out = K.layers.Dense(state_size, activation='sigmoid')
 
     @tf.function
     def call(self, inputs, training):
@@ -29,6 +29,6 @@ class Generator(K.Model):
         for res_block in self.res_blocks:
             x = res_block[0](x, training=training)
             x = res_block[1](x, training=training)
-            x = res_block[2]((x, inputs), training = training)
+            x = res_block[2]((x, inputs), training=training)
         x = self.out(x, training=training)
         return x

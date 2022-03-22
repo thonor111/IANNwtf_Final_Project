@@ -28,7 +28,7 @@ class Discriminator(K.Model):
         self.out = K.layers.Dense(2, activation=None, kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value,
                                                                                                         clipping_value))  # linear activation for the WGAN
 
-    # @tf.function
+    @tf.function
     def call(self, inputs, training):
         x = self.input_layer(inputs, training=training)
         inputs = x

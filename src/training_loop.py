@@ -1,17 +1,17 @@
 import tensorflow as tf
-import tensorflow.keras as K
+
 
 ##################################################################
 # Training of the Autoencoder
 ##################################################################
 
 # @tf.function
-def train_step_vae(vae, input, target, loss_function, optimizer):
+def train_step_vae(vae, inputs, target, loss_function, optimizer):
     """
     Performs the training step of the VAE
     Args:
       vae: the VAE to be trained
-      input: The input of the encoder
+      inputs: The input of the encoder
       target: The target of the decoder
       loss_function: the loss_function to be used
       optimizer: the optimizer to be used for learning
@@ -21,7 +21,7 @@ def train_step_vae(vae, input, target, loss_function, optimizer):
 
     with tf.GradientTape() as tape:
         # calculating the prediction of the vae
-        prediction = vae(input, training=True)
+        prediction = vae(inputs, training=True)
         # calculating the loss of the prediction to the target
         loss = loss_function(target, prediction)
     # calculating the gradient
@@ -36,7 +36,8 @@ def train_step_vae(vae, input, target, loss_function, optimizer):
 # Training of the GAN
 ##################################################################
 
-def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator, optimizer_discriminator, learning_step):
+def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator,
+                   optimizer_discriminator, learning_step):
     '''
     Performs the training step of the GAN
     Args:
