@@ -37,7 +37,7 @@ def train_step_vae(vae, inputs, target, loss_function, optimizer):
 ##################################################################
 
 def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentiment, optimizer_generator,
-                   optimizer_discriminator, learning_step):
+                   optimizer_discriminator, learning_step, loss_function_sentiment):
     '''
     Performs the training step of the GAN
     Args:
@@ -54,15 +54,18 @@ def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentime
   '''
 
     with tf.GradientTape() as discriminator_tape, tf.GradientTape() as generator_tape:
-        # generation = generator(tf.concat((gaussian, sentiment), axis = 0), training=True)
-        generation = generator(gaussian, training=True)
-        # prediction_fake, prediction_fake_sentiment = discriminator(generation, training=True)
+        generator_input = tf.concat((gaussian, tf.expand_dims(tf.cast(sentiment, tf.float32), -1)), axis=1)
+        generation = generator(generator_input, training=True)
+        # generation = generator(gaussian, training=True)
         predictions_fake = discriminator(generation, training=True)
         prediction_fake, prediction_fake_sentiment = tf.transpose(predictions_fake)
         predictions_real = discriminator(encoded_sentence, training=True)
         prediction_real, prediction_real_sentiment = tf.transpose(predictions_real)
         loss_generator = tf.math.negative(tf.reduce_mean(prediction_fake))
         loss_discriminator = tf.reduce_mean(prediction_fake - prediction_real)
+        # Adding the Losses for the Sentiment
+        loss_generator = tf.add(loss_generator, loss_function_sentiment(prediction_fake_sentiment, tf.cast(sentiment, tf.float32)))
+        loss_discriminator = tf.add(loss_discriminator, loss_function_sentiment(prediction_real_sentiment, tf.cast(sentiment, tf.float32)))
     # calculating the gradients
     gradients_discriminator = discriminator_tape.gradient(loss_discriminator, discriminator.trainable_variables)
     gradients_generator = generator_tape.gradient(loss_generator, generator.trainable_variables)

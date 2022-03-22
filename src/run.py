@@ -48,7 +48,7 @@ for epoch in range(num_epochs_vae):
 
     # training (and checking in with training)
     epoch_losses_vae = []
-    for embedding, target, sentiment, noise in train_data.take(50):
+    for embedding, target, sentiment, noise in train_data.take(10):
         train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                       inputs=embedding,
                                                       target=target,
@@ -90,7 +90,7 @@ for epoch in range(num_epochs_gan):
     # training (and checking in with training)
     epoch_losses_discriminator = []
     epoch_losses_generator = []
-    for embedding, target, sentiment, noise in train_data.take(100):
+    for embedding, target, sentiment, noise in train_data.take(20):
         learning_step += 1
         encoded_sentence = vae.encode(embedding)
         train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
@@ -99,7 +99,8 @@ for epoch in range(num_epochs_gan):
                                                                                       sentiment=sentiment,
                                                                                       optimizer_generator=optimizer_generator,
                                                                                       optimizer_discriminator=optimizer_discriminator,
-                                                                                      learning_step=learning_step)
+                                                                                      learning_step=learning_step,
+                                                                                      loss_function_sentiment=K.losses.MeanSquaredError())
         epoch_losses_discriminator.append(train_loss_discriminator)
         epoch_losses_generator.append(train_loss_generator)
 
@@ -110,7 +111,8 @@ for epoch in range(num_epochs_gan):
 
 print('Generated Sentences:')
 for embedding, target, sentiment, noise in test_data.take(2):
-    generated_states = generator(noise, training=False)
+    generator_input = tf.concat((noise, tf.expand_dims(tf.cast(sentiment, tf.float32), -1)), axis=1)
+    generated_states = generator(generator_input, training=False)
     start_input = tf.constant(input_pipeline.start_token, dtype=tf.float32, shape=(input_pipeline.batch_size, 1, 1))
 
     generated_text = vae.decoder.generate_sentence(
@@ -118,11 +120,15 @@ for embedding, target, sentiment, noise in test_data.take(2):
 
     text = input_pipeline.tokenizer.detokenize(generated_text)
 
-    for sentence_array in text.numpy():
+    for index, sentence_array in enumerate(text.numpy()):
         sentence = ''
-        for index, word in enumerate(sentence_array):
+        for i, word in enumerate(sentence_array):
             sentence += word.decode('utf-8')
             sentence += ' '
-            if (word.decode('utf-8') == '[END]') or (index == len(sentence_array) - 1):
+            if (word.decode('utf-8') == '[END]') or (i == len(sentence_array) - 1):
                 break
+        if sentiment.numpy()[index] == 0:
+            print('Sentiment: Negative; Sentence: ')
+        else:
+            print('Sentiment: Positive; Sentence: ')
         print(sentence, '\n')
