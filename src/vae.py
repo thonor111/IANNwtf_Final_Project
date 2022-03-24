@@ -11,14 +11,14 @@ class VariationalAutoEncoder(K.Model):
         self.encoder = Encoder(state_size)
         self.decoder = Decoder(vocab_size)
 
-    # @tf.function
+    @tf.function
     def call(self, inputs, training):
         x = self.encoder(inputs, training=training)
         y = self.decoder(inputs, x, training=training)
 
         return y
 
-    # @tf.function
+    @tf.function
     def encode(self, inputs, training=False):
         return self.encoder(inputs, training=training)
 
@@ -29,14 +29,14 @@ class Encoder(K.Model):
         super(Encoder, self).__init__()
 
         # self.embedding_layer = K.layers.Embedding(input_dim=vocab_size, output_dim=state_size)
-        self.lstm_layer = K.layers.LSTM(100)
+        self.lstm_layer = K.layers.LSTM(100, return_state=True)
         self.dense_layer = K.layers.Dense(state_size)
 
-    # @tf.function
+    @tf.function
     def call(self, inputs, training):
         # x = self.embedding_layer(inputs)
-        x = self.lstm_layer(inputs, training=training)
-        y = self.dense_layer(x, training=training)
+        x, hidden_state, cell_state = self.lstm_layer(inputs, training=training)
+        y = self.dense_layer(tf.concat((x, cell_state), axis=1), training=training)
 
         return y
 
@@ -50,7 +50,7 @@ class Decoder(K.Model):
         self.lstm_layer = K.layers.LSTM(600, return_sequences=True, return_state=True)
         self.dense_layer = K.layers.Dense(vocab_size, activation='softmax')
 
-    # @tf.function
+    @tf.function
     def call(self, inputs, states, training):
         # x = self.embedding_layer(inputs)
         x, _, _ = self.lstm_layer(inputs, initial_state=[states, tf.zeros_like(states)], training=training)
@@ -58,7 +58,6 @@ class Decoder(K.Model):
 
         return y
 
-    # @tf.function
     def generate_sentence(self, starting_input, states, training=False):
         sentence = tf.cast(tf.squeeze(starting_input, (2)), tf.int64).numpy()
         max_sentence_length = 250

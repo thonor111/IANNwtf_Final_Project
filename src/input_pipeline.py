@@ -7,11 +7,12 @@ from os.path import exists
 class InputPipeline:
 
     def __init__(self):
-        self.start_token = 1
-        self.end_token = 0
+        self.start_token = 2
+        self.end_token = 1
         self.vocab_size = 10000
         self.tokenizer = None
-        self.batch_size = 20
+        self.batch_size = 5
+        self.maximal_sentence_length = 3576
 
     def train_tokenizer(self, data):
         plain_text = data.map(lambda sentence, sentiment: sentence).padded_batch(1000).prefetch(2)
@@ -20,7 +21,7 @@ class InputPipeline:
 
         if not exists('vocab.txt'):
             print('training')
-            reserved_tokens = ["[END]", "[START]"]
+            reserved_tokens = ["[NULL]", "[END]", "[START]"]
             bert_vocab_args = dict(
                 # The target vocabulary size
                 vocab_size=self.vocab_size,
@@ -48,6 +49,11 @@ class InputPipeline:
         tokenized_text = tf.expand_dims(tokenized_text, -1)
         return tokenized_text, label
 
+    def pad_up_to(self, t, max_in_dims, constant_values):
+        s = tf.shape(t)
+        paddings = [[0, m-s[i]] for (i,m) in enumerate(max_in_dims)]
+        return tf.pad(t, paddings, 'CONSTANT', constant_values=constant_values)
+
     def prepare_data(self, data):
         # tokenizing the text
         data = data.map(self.tokenize_data)
@@ -66,7 +72,13 @@ class InputPipeline:
         data = data.map(
             lambda embedding, sentiment, noise: (embedding, tf.roll(embedding, shift=-1, axis=0), sentiment, noise))
 
+        # data = data.padded_batch(25000)
+        #
+        # data = data.unbatch()
+
         # standard pipeline
-        data = data.cache().shuffle(1000).padded_batch(self.batch_size).prefetch(20)
+        data = data.cache().shuffle(1000)
+        data = data.padded_batch(self.batch_size, padded_shapes=([self.maximal_sentence_length, 1], [self.maximal_sentence_length, 1], [], [100]))
+        data = data.prefetch(20)
 
         return data
