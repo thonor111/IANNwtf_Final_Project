@@ -15,7 +15,9 @@ class InputPipeline:
         self.maximal_sentence_length = 3576
 
     def train_tokenizer(self, data):
-        plain_text = data.map(lambda sentence, sentiment: sentence).padded_batch(1000).prefetch(2)
+        plain_text = data.map(lambda sentence, sentiment: sentence)
+        plain_text = plain_text.map(lambda sentence: tf.strings.regex_replace(sentence, "[^a-z A-Z]", ""))
+        plain_text = plain_text.padded_batch(1000).prefetch(2)
 
         bert_tokenizer_params = dict(lower_case=True)
 
@@ -55,6 +57,8 @@ class InputPipeline:
         return tf.pad(t, paddings, 'CONSTANT', constant_values=constant_values)
 
     def prepare_data(self, data):
+        # remove parts that are not words
+        data = data.map(lambda sentence, sentiment: (tf.strings.regex_replace(sentence, "[^a-z A-Z]", ""), sentiment))
         # tokenizing the text
         data = data.map(self.tokenize_data)
 
