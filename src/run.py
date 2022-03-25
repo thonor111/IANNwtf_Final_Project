@@ -21,15 +21,15 @@ input_pipeline.train_tokenizer(train_data)
 train_data = train_data.apply(input_pipeline.prepare_data)
 test_data = test_data.apply(input_pipeline.prepare_data)
 
-train_vae = True
-train_gan = True
+train_vae = False
+train_gan = False
 
 
 ##################################################################
 # Training of the AutoEncoder
 ##################################################################
 
-num_epochs_vae = 5
+num_epochs_vae = 2
 alpha_vae = 0.001
 
 # Initialize Model
@@ -56,7 +56,7 @@ if train_vae:
 
         # training (and checking in with training)
         epoch_losses_vae = []
-        for embedding, target, sentiment, noise in train_data.take(10):
+        for embedding, target, sentiment, noise in train_data.take(5):
             train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                           inputs=embedding,
                                                           target=target,
@@ -109,7 +109,7 @@ if train_gan:
         # training (and checking in with training)
         epoch_losses_discriminator = []
         epoch_losses_generator = []
-        for embedding, target, sentiment, noise in train_data.take(10):
+        for embedding, target, sentiment, noise in train_data.take(100):
             learning_step += 1
             encoded_sentence = vae.encode(embedding)
             train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,

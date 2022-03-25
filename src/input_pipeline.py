@@ -9,7 +9,7 @@ class InputPipeline:
     def __init__(self):
         self.start_token = 2
         self.end_token = 1
-        self.vocab_size = 10000
+        self.vocab_size = 9872
         self.tokenizer = None
         self.batch_size = 5
         self.maximal_sentence_length = 3576

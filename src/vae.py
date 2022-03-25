@@ -11,7 +11,7 @@ class VariationalAutoEncoder(K.Model):
         self.encoder = Encoder(state_size)
         self.decoder = Decoder(vocab_size)
 
-    @tf.function
+    # @tf.function
     def call(self, inputs, training):
         x = self.encoder(inputs, training=training)
         y = self.decoder(inputs, x, training=training)
@@ -40,6 +40,11 @@ class Encoder(K.Model):
 
         return y
 
+def softmax_null_disabled(x):
+    activation = tf.nn.softmax(x)
+    activation = tf.slice(activation, [0, 0, 1], [5, activation.shape[1], 9871])
+    activation = tf.concat((tf.cast(tf.zeros((5, activation.shape[1], 1)), tf.float32), activation), axis = 2)
+    return activation
 
 class Decoder(K.Model):
 
@@ -48,9 +53,9 @@ class Decoder(K.Model):
 
         # self.embedding_layer = K.layers.Embedding(input_dim=vocab_size, output_dim=embedding_size)
         self.lstm_layer = K.layers.LSTM(600, return_sequences=True, return_state=True)
-        self.dense_layer = K.layers.Dense(vocab_size, activation='softmax')
+        self.dense_layer = K.layers.Dense(vocab_size, activation=softmax_null_disabled)
 
-    @tf.function
+    # @tf.function
     def call(self, inputs, states, training):
         # x = self.embedding_layer(inputs)
         x, _, _ = self.lstm_layer(inputs, initial_state=[states, tf.zeros_like(states)], training=training)

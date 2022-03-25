@@ -94,7 +94,7 @@ def test_step_vae(vae, test_data, loss_function):
     losses = []
     for inputs, target, sentiment, noise in test_data:
         # calculating the prediction of the vae
-        prediction = vae(inputs, training=True)
+        prediction = vae(inputs, training=False)
         # calculating the loss of the prediction to the target
         loss = loss_function(target, prediction)
         # calculating the gradient
@@ -124,10 +124,10 @@ def test_step_gan(generator, discriminator, test_data, vae, loss_function_sentim
     losses_discriminator = []
     for inputs, target, sentiment, noise in test_data:
         generator_input = tf.concat((noise, tf.expand_dims(tf.cast(sentiment, tf.float32), -1)), axis=1)
-        generation = generator(generator_input, training=True)
-        predictions_fake = discriminator(generation, training=True)
+        generation = generator(generator_input, training=False)
+        predictions_fake = discriminator(generation, training=False)
         prediction_fake, prediction_fake_sentiment = tf.transpose(predictions_fake)
-        predictions_real = discriminator(vae.encode(inputs), training=True)
+        predictions_real = discriminator(vae.encode(inputs), training=False)
         prediction_real, prediction_real_sentiment = tf.transpose(predictions_real)
         loss_generator = tf.math.negative(tf.reduce_mean(prediction_fake))
         loss_discriminator = tf.reduce_mean(prediction_fake - prediction_real)
