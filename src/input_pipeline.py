@@ -11,7 +11,7 @@ class InputPipeline:
         self.end_token = 1
         self.vocab_size = 9872
         self.tokenizer = None
-        self.batch_size = 5
+        self.batch_size = 2
         self.maximal_sentence_length = 3576
 
     def train_tokenizer(self, data):
@@ -82,7 +82,8 @@ class InputPipeline:
 
         # standard pipeline
         data = data.cache().shuffle(1000)
-        data = data.padded_batch(self.batch_size, padded_shapes=([self.maximal_sentence_length, 1], [self.maximal_sentence_length, 1], [], [100]))
+        data = data.padded_batch(self.batch_size)
+        # data = data.padded_batch(self.batch_size, padded_shapes=([self.maximal_sentence_length, 1], [self.maximal_sentence_length, 1], [], [100]))
         data = data.prefetch(20)
 
         return data
