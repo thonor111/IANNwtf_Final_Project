@@ -48,7 +48,7 @@ loss_function_vae = K.losses.SparseCategoricalCrossentropy()
 train_losses_vae = []
 test_losses_vae = []
 
-print(f"Testing loss of the VAE before training: {training_loop.test_step_vae(vae, test_data.take(100), loss_function_vae)}")
+print(f"Testing loss of the VAE before training: {training_loop.test_step_vae(vae, test_data.take(10), loss_function_vae)}")
 
 if train_vae:
     # We train for num_epochs epochs.
@@ -67,7 +67,7 @@ if train_vae:
         # track training loss
         train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
         # track test loss
-        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(100), loss_function_vae))
+        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(10), loss_function_vae))
         print(f"Epoch {epoch} of the VAE ending with an average training loss of {tf.reduce_mean(epoch_losses_vae)}")
     vae.save_weights('saved_models/weights/vae')
 else:
