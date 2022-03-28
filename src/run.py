@@ -22,15 +22,15 @@ input_pipeline.train_tokenizer(train_data)
 train_data = train_data.apply(input_pipeline.prepare_data)
 test_data = test_data.apply(input_pipeline.prepare_data)
 
-train_vae = True
-train_gan = True
+train_vae = False
+train_gan = False
 
 
 ##################################################################
 # Training of the AutoEncoder
 ##################################################################
 
-num_epochs_vae = 3
+num_epochs_vae = 5
 alpha_vae = 0.001
 
 # Initialize Model
@@ -48,8 +48,7 @@ loss_function_vae = K.losses.SparseCategoricalCrossentropy()
 train_losses_vae = []
 test_losses_vae = []
 
-test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(5), loss_function_vae))
-print(f"Testing loss of the VAE before training: {test_losses_vae[0]}")
+print(f"Testing loss of the VAE before training: {training_loop.test_step_vae(vae, test_data.take(100), loss_function_vae)}")
 
 if train_vae:
     # We train for num_epochs epochs.
@@ -57,7 +56,7 @@ if train_vae:
 
         # training (and checking in with training)
         epoch_losses_vae = []
-        for embedding, target, sentiment, noise in train_data.take(500):
+        for embedding, target, sentiment, noise in train_data.take(2500):
             train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                           inputs=embedding,
                                                           target=target,
@@ -68,7 +67,7 @@ if train_vae:
         # track training loss
         train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
         # track test loss
-        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(5), loss_function_vae))
+        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(100), loss_function_vae))
         print(f"Epoch {epoch} of the VAE ending with an average training loss of {tf.reduce_mean(epoch_losses_vae)}")
     vae.save_weights('saved_models/weights/vae')
 else:
@@ -79,7 +78,7 @@ else:
 ##################################################################
 
 # Hyperparameters
-num_epochs_gan = 5
+num_epochs_gan = 10
 alpha_generator = 0.00005
 alpha_discriminator = 0.00005
 
@@ -99,7 +98,7 @@ test_losses_discriminator = []
 train_losses_generator = []
 test_losses_generator = []
 
-test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator, test_data.take(5), vae, loss_function_sentiment)
+test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator, test_data.take(100), vae, loss_function_sentiment)
 test_losses_generator.append(test_loss_generator)
 test_losses_discriminator.append(test_loss_discriminator)
 print(f"Test loss Generator: {test_loss_generator}, test loss discriminator: {test_loss_discriminator}")
@@ -112,7 +111,7 @@ if train_gan:
         # training (and checking in with training)
         epoch_losses_discriminator = []
         epoch_losses_generator = []
-        for embedding, target, sentiment, noise in train_data.take(1000):
+        for embedding, target, sentiment, noise in train_data.take(2500):
             learning_step += 1
             encoded_sentence = vae.encode(embedding)
             train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
@@ -131,7 +130,7 @@ if train_gan:
         # track test loss
         train_losses_generator.append(tf.reduce_mean(epoch_losses_generator))
         test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator,
-                                                                                   test_data.take(5), vae,
+                                                                                   test_data.take(100), vae,
                                                                                    loss_function_sentiment)
         test_losses_generator.append(test_loss_generator)
         test_losses_discriminator.append(test_loss_discriminator)
@@ -143,7 +142,7 @@ else:
     discriminator.load_weights('saved_models/weights/discriminator')
 
 print('Generated Sentences:')
-for embedding, target, sentiment, noise in test_data.take(2):
+for embedding, target, sentiment, noise in test_data.take(10):
     generator_input = tf.concat((noise, tf.expand_dims(tf.cast(sentiment, tf.float32), -1)), axis=1)
     generated_states = generator(generator_input, training=False)
     start_input = tf.constant(input_pipeline.start_token, dtype=tf.float32, shape=(input_pipeline.batch_size, 1, 1))
@@ -177,6 +176,6 @@ if train_vae and train_gan:
     line6, = plt.plot(test_losses_generator)
     plt.xlabel("Epoch")
     plt.ylabel("Losses")
-    plt.ylim(bottom = 0)
+    plt.ylim(bottom = -2, top = 10)
     plt.legend((line1, line2, line3, line4, line5, line6),("Train losses VAE", "Test Losses VAE", "Train losses Discriminator", "Test losses Discriminator", "Train losses Generator", "Test losses Generator"))
     plt.show()

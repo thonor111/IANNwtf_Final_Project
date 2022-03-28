@@ -57,7 +57,6 @@ def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentime
     with tf.GradientTape() as discriminator_tape, tf.GradientTape() as generator_tape:
         generator_input = tf.concat((gaussian, tf.expand_dims(tf.cast(sentiment, tf.float32), -1)), axis=1)
         generation = generator(generator_input, training=True)
-        # generation = generator(gaussian, training=True)
         predictions_fake = discriminator(generation, training=True)
         prediction_fake, prediction_fake_sentiment = tf.transpose(predictions_fake)
         predictions_real = discriminator(encoded_sentence, training=True)
@@ -65,8 +64,8 @@ def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentime
         loss_generator = tf.math.negative(tf.reduce_mean(prediction_fake))
         loss_discriminator = tf.reduce_mean(prediction_fake - prediction_real)
         # Adding the Losses for the Sentiment
-        loss_generator = tf.add(loss_generator, loss_function_sentiment(prediction_fake_sentiment, tf.cast(sentiment, tf.float32)))
-        loss_discriminator = tf.add(loss_discriminator, loss_function_sentiment(prediction_real_sentiment, tf.cast(sentiment, tf.float32)))
+        loss_generator = tf.add(loss_generator, loss_function_sentiment(prediction_fake_sentiment, tf.divide(tf.cast(sentiment, tf.float32), tf.constant(10, tf.float32))))
+        loss_discriminator = tf.add(loss_discriminator, loss_function_sentiment(prediction_real_sentiment, tf.divide(tf.cast(sentiment, tf.float32), tf.constant(10, tf.float32))))
     # calculating the gradients
     gradients_discriminator = discriminator_tape.gradient(loss_discriminator, discriminator.trainable_variables)
     gradients_generator = generator_tape.gradient(loss_generator, generator.trainable_variables)
@@ -132,8 +131,8 @@ def test_step_gan(generator, discriminator, test_data, vae, loss_function_sentim
         loss_generator = tf.math.negative(tf.reduce_mean(prediction_fake))
         loss_discriminator = tf.reduce_mean(prediction_fake - prediction_real)
         # Adding the Losses for the Sentiment
-        loss_generator = tf.add(loss_generator, loss_function_sentiment(prediction_fake_sentiment, tf.cast(sentiment, tf.float32)))
-        loss_discriminator = tf.add(loss_discriminator, loss_function_sentiment(prediction_real_sentiment, tf.cast(sentiment, tf.float32)))
+        loss_generator = tf.add(loss_generator, loss_function_sentiment(prediction_fake_sentiment, tf.divide(tf.cast(sentiment, tf.float32), tf.constant(10, tf.float32))))
+        loss_discriminator = tf.add(loss_discriminator, loss_function_sentiment(prediction_real_sentiment, tf.divide(tf.cast(sentiment, tf.float32), tf.constant(10, tf.float32))))
         # calculating the gradients
         losses_generator.append(loss_generator)
         losses_discriminator.append(loss_discriminator)

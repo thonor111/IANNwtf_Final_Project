@@ -31,7 +31,7 @@ class Encoder(K.Model):
         super(Encoder, self).__init__()
 
         self.embedding_layer = K.layers.Embedding(input_dim=vocab_size, output_dim=embedding_size)
-        self.lstm_layer = K.layers.LSTM(100, return_state=True)
+        self.lstm_layer = K.layers.LSTM(100, return_state=True, dropout=0.5)
         self.dense_layer = K.layers.Dense(state_size)
 
     # @tf.function
