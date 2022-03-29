@@ -1,31 +1,55 @@
-\documentclass{article}
+\documentclass{report}
 
 \usepackage{subfiles}
+\usepackage{csquotes}
+\usepackage{listings}
+\renewcommand\thesection{\arabic{section}}
+\renewcommand{\bibname}{References}
+\usepackage[a4paper, total={5in, 7in}]{geometry}
+\usepackage{graphicx}
+\graphicspath{ {./imgs/} }
 
-\title{Final Project Title}
-\author{Thomas Nortmann  \\
+
+\title{Generating Opionated Movie Reviews using GANs}
+\author{Thomas Nortmann \\
+982524
 	\and 
-	Elena Korovina\\
-	\and
-	Lara McDonald
+	Lara McDonald \\
+	978624
 	}
 
-\date{\today}
-% Hint: \title{what ever}, \author{who care} and \date{when ever} could stand 
-% before or after the \begin{document} command 
-% BUT the \maketitle command MUST come AFTER the \begin{document} command! 
+\date{March 26,  2022}
 \begin{document}
-
 
 \maketitle
 
 
 \begin{abstract}
-
+Generative Adversarial Networks have been immensely successful in generating artificial images almost indistinguishable from real-world examples.  This success begs the question, of whether the architecture can also be applied to other domains, such as text. After discussing the challenges of adapting GANs to the textual domain and outlining existing approaches, we implement a LaTextGAN model. The model is trained on the IMDB Reviews Dataset and tasked with generating realistic movie reviews.  Additionally, the model takes a sentiment parameter (positive/negative) and should generate opinionated reviews reflecting this sentiment.  RESULTS
 \end{abstract}
 
 \section{Introduction}
 \subfile{sections/introduction}
+
+\section{The Dataset}
+\subfile{sections/dataset}
+
+\section{Background}
+\subfile{sections/overview}
+
+\section{Related Approaches}
+\subfile{sections/related}
+
+\section{Model}
+\subfile{sections/architecture}
+
+%\newpage
+\section{Results}
+\subfile{sections/results}
+
+%\newpage
+\section{Discussion}
+\subfile{sections/discussion}
 
 \bibliographystyle{plain}
 \bibliography{references.bib}

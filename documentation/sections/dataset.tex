@@ -1,0 +1,15 @@
+\documentclass[../main]{subfiles}
+
+\begin{document}
+
+The model is trained on the \textit{Large Movie Review} Dataset \cite{maas-EtAl:2011:ACL-HLT2011}, also known as the \textit{IMDB Reviews} Dataset, which is publicly available in TensorFlow datasets. The dataset contains 100,000 user-generated movie reviews from the online movie database IMDB.  Half of the reviews are unlabeled, while the other 50,000 are labeled according to the primary sentiment of the review, e.g. positive or negative.  The sentiment classes were assigned according to the mandatory rating an IMDB user needs to leave alongside their review. Movies are rated on a 10-star scale, with 1 star equating to strong discontent and 10 stars to strong satisfaction.  
+
+The IMDB Reviews Dataset is advantageous in multiple ways for this project. Firstly, the labeled examples are balanced, i.e. there are 25,000 reviews classified as being positive and an equal amount of examples classified as negative.  Since our GAN aims to generate reviews of both sentiments,  an unbalanced dataset could skew results.  Furthermore,  the dataset only contains reviews with strong sentiment polarity.  To be included in the negative sentiment class, a review's rating must be less or equal to 4 stars, while only reviews with a rating of 7 stars or higher are included in the positive sentiment class.  The model can thus learn to generate sentences with a clear sentiment.
+
+\subsection{Preprocessing Steps}
+
+Each sample in the dataset, as it is available in TensorFlow, is a \textit{FeaturesDict} containing a \textit{label} and a \textit{text}. The \textit{label} is an integer of value 0 (negative sentiment) or 1 (positive sentiment), while the \textit{text} is the corresponding movie review in plain text. To use the data samples as input for our model, several preprocessing steps need to be performed on the plain text component of the tensors. 
+
+First,  the text is cleaned by removing special characters. The resulting text is now tokenized with the BertTokenizer from TensorFlow Text. To each tokenized sentence, a [START] and [END] token is added to the beginning and end of the sentence, respectively. This is a necessary step, as it enables the Generator to learn how to begin a review and more crucially when to end it. 
+
+\end{document}

@@ -2,4 +2,16 @@
 
 \begin{document}
 
+Generative Adversarial Networks (GANs) are a well-established tool for the creation of artificially generated images.  Having experienced great success in this domain, it is interesting to explore the possibilities of adapting the architecture to other domains, such as text-based tasks. 
+
+The basic idea behind the GAN architecture is to let two neural networks play a min-max game against each other,  or rather a re-imagined version of the Turing Test.  Player One, the Generator, is tasked with creating samples based on a random noise input, while Player Two, the Discriminator,  is tasked with deciding whether its input sample belongs to the set of "real" training samples or is simply a "fake" sample created by Generator.  The goal of this spiel is for the Generator to be able to generate images that are indistinguishable from "real" samples.  
+
+The idea behind our Final Project was to apply GANs, which have been very successful in generating images indistinguishable from actual photographs, to a textual domain. Specifically, we aimed at constructing a model which can generate plausible, opinionated movie reviews.  When given a sentiment parameter (positive/negative) the GAN should be able to generate a review that aligns with the sentiment. To achieve this, the basic GAN structure needs to be adjusted to allow for input constructed from this discrete, textual domain, rather than the continuous spaces it was originally intended for. Additionally, vanilla GANs do not accept an external condition for sample generation, such as the sentiment parameter. Thus,  a second adaptation to the architecture is necessary for the model to achieve its task.
+
+We chose to implement a variation on LaTextGAN, an architecture proposed by D. Donahue and A. Rumhinsky in 2019 \cite{latextgan}. LaTextGAN circumvents the problem of having discrete outputs by utilizing a Variational Autoencoder to encode the input samples before GAN training. We also adapted the LaTextGAN architecture to allow for the additional sentiment parameter.
+
+RESULTS
+
+This paper aims to document our research and development process.  We begin by further detailing the task at hand and the dataset we are working with. Afterward, we will shortly review relevant literature and architectures,  discussing their advantages and flaws regarding our chosen task.  We will then describe our choice of architecture and will lastly review and discuss our results.
+
 \end{document}
