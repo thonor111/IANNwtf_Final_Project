@@ -7,8 +7,8 @@ from os.path import exists
 class InputPipeline:
 
     def __init__(self):
-        self.start_token = 2
-        self.end_token = 1
+        self.start_token = 1
+        self.end_token = 0
         self.vocab_size = 9872
         self.tokenizer = None
         self.batch_size = 2
@@ -23,7 +23,7 @@ class InputPipeline:
 
         if not exists('vocab.txt'):
             print('training')
-            reserved_tokens = ["[NULL]", "[END]", "[START]"]
+            reserved_tokens = ["[END]", "[START]"]
             bert_vocab_args = dict(
                 # The target vocabulary size
                 vocab_size=self.vocab_size,

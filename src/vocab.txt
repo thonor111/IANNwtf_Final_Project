@@ -1,4 +1,3 @@
-[NULL]
 [END]
 [START]
 a
