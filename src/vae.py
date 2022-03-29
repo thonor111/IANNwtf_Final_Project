@@ -58,6 +58,7 @@ class Decoder(K.Model):
 
         self.embedding_layer = K.layers.Embedding(input_dim=vocab_size, output_dim=embedding_size)
         self.lstm_layer = K.layers.LSTM(600, return_sequences=True, return_state=True)
+        self.dropout = K.layers.Dropout(0.5)
         self.dense_layer = K.layers.Dense(vocab_size, activation='softmax')
 
     # @tf.function
@@ -65,6 +66,7 @@ class Decoder(K.Model):
         x = self.embedding_layer(inputs)
         x = tf.squeeze(x)
         x, _, _ = self.lstm_layer(x, initial_state=[states, tf.zeros_like(states)], training=training)
+        x = self.dropout(x, training=training)
         y = self.dense_layer(x, training=training)
 
         return y

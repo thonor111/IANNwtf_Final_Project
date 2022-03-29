@@ -59,8 +59,6 @@ class InputPipeline:
     def prepare_data(self, data):
         # remove parts that are not words
         data = data.map(lambda sentence, sentiment: (tf.strings.regex_replace(sentence, "[^a-z A-Z]", ""), sentiment))
-
-        data = data.map(lambda sentence, sentiment: (sentence, tf.multiply(sentiment, tf.constant(10, tf.int64))))
         # tokenizing the text
         data = data.map(self.tokenize_data)
 

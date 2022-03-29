@@ -25,8 +25,10 @@ class Discriminator(K.Model):
             ]
             self.res_blocks.append(res_block)
 
-        self.out = K.layers.Dense(2, activation=None, kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value,
+        self.prediction = K.layers.Dense(1, activation=None, kernel_constraint=tf.keras.constraints.MinMaxNorm(-clipping_value,
                                                                                                         clipping_value))  # linear activation for the WGAN
+        self.sentiment = K.layers.Dense(1, activation="sigmoid")
+        self.out = K.layers.Concatenate()
 
     @tf.function
     def call(self, inputs, training):
@@ -36,5 +38,7 @@ class Discriminator(K.Model):
             x = res_block[0](x, training=training)
             x = res_block[1](x, training=training)
             x = res_block[2]((x, inputs), training=training)
-        x = self.out(x, training=training)
-        return x
+        y = self.prediction(x, training=training)
+        z = self.sentiment(x, training=training)
+        out = self.out([y,z])
+        return out
