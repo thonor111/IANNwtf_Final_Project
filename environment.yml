@@ -1,0 +1,12 @@
+name: IANNwTFFinalProject
+channels:
+  - defaults
+dependencies:
+  - numpy
+  - python=3.7
+  - matplotlib
+  - tensorflow
+  - pip
+  - pip:
+    - tensorflow-datasets
+    - tensorflow_text
