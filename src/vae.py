@@ -32,7 +32,7 @@ class Encoder(K.Model):
 
         self.embedding_layer = K.layers.Embedding(input_dim=vocab_size, output_dim=embedding_size)
         self.lstm_layer = K.layers.LSTM(100, return_state=True, dropout=0.5)
-        self.dense_layer = K.layers.Dense(state_size, activation=None)
+        self.dense_layer = K.layers.Dense(state_size, activation="sigmoid")
 
     # @tf.function
     def call(self, inputs, training):
