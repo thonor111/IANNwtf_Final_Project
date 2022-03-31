@@ -13,6 +13,7 @@ class InputPipeline:
         self.tokenizer = None
         self.batch_size = 2
         self.maximal_sentence_length = 3576
+        self.sentence_length = 40
 
     def train_tokenizer(self, data):
         plain_text = data.map(lambda sentence, sentiment: sentence)
@@ -51,11 +52,6 @@ class InputPipeline:
         tokenized_text = tf.expand_dims(tokenized_text, -1)
         return tokenized_text, label
 
-    def pad_up_to(self, t, max_in_dims, constant_values):
-        s = tf.shape(t)
-        paddings = [[0, m-s[i]] for (i,m) in enumerate(max_in_dims)]
-        return tf.pad(t, paddings, 'CONSTANT', constant_values=constant_values)
-
     def prepare_data(self, data):
         # remove parts that are not words
         data = data.map(lambda sentence, sentiment: (tf.strings.regex_replace(sentence, "[^a-z A-Z]", ""), sentiment))
@@ -73,17 +69,13 @@ class InputPipeline:
         # adding noise as input for the GAN
         data = data.map(lambda embedding, sentiment: (embedding, sentiment, tf.random.uniform(shape=[100])))
 
+        # adding the target for the VAE
         data = data.map(
             lambda embedding, sentiment, noise: (embedding, tf.roll(embedding, shift=-1, axis=0), sentiment, noise))
-
-        # data = data.padded_batch(25000)
-        #
-        # data = data.unbatch()
 
         # standard pipeline
         data = data.cache().shuffle(1000)
         data = data.padded_batch(self.batch_size)
-        # data = data.padded_batch(self.batch_size, padded_shapes=([self.maximal_sentence_length, 1], [self.maximal_sentence_length, 1], [], [100]))
         data = data.prefetch(20)
 
         return data

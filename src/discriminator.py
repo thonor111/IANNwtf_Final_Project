@@ -5,9 +5,9 @@ import tensorflow.keras as K
 class Discriminator(K.Model):
 
     def __init__(self):
-        '''
+        """
         Initializes the discriminator
-        '''
+        """
         super(Discriminator, self).__init__()
 
         clipping_value = 0.01
@@ -32,6 +32,12 @@ class Discriminator(K.Model):
 
     @tf.function
     def call(self, inputs, training):
+        """
+        Calls the discriminator
+        :param inputs: The inputs to be analyzed
+        :param training: Whether the model is in training mode
+        :return: The results of the Discriminator
+        """
         x = self.input_layer(inputs, training=training)
         inputs = x
         for res_block in self.res_blocks:

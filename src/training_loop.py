@@ -5,7 +5,6 @@ import tensorflow as tf
 # Training of the AutoEncoder
 ##################################################################
 
-# @tf.function
 def train_step_vae(vae, inputs, target, loss_function, optimizer):
     """
     Performs the training step of the VAE
@@ -58,7 +57,6 @@ def train_step_gan(generator, discriminator, encoded_sentence, gaussian, sentime
         sentiment_vector = tf.transpose(tf.multiply(tf.transpose(tf.ones_like(gaussian)), tf.cast(sentiment, tf.float32)))
         generator_input = tf.concat((gaussian, sentiment_vector), axis=-1)
         generation = generator(generator_input, training=True)
-        # generation = generator(gaussian, training=True)
         predictions_fake = discriminator(generation, training=True)
         prediction_fake, prediction_fake_sentiment = tf.transpose(predictions_fake)
         predictions_real = discriminator(encoded_sentence, training=True)

@@ -4,10 +4,11 @@ import tensorflow.keras as K
 
 class Generator(K.Model):
 
-    def __init__(self, state_size=250):
-        '''
-        Initializes the generator
-        '''
+    def __init__(self, state_size):
+        """
+        Initializes the Generator
+        :param state_size: The size of the states to be generated
+        """
         super(Generator, self).__init__()
 
         self.input_layer = K.layers.Dense(100)
@@ -25,6 +26,12 @@ class Generator(K.Model):
 
     @tf.function
     def call(self, inputs, training):
+        """
+        Generates states based on the input
+        :param inputs: Concatenation of random vector and conditional parameters
+        :param training: Whether the Generator gets trained
+        :return: The generated states
+        """
         x = self.input_layer(inputs, training=training)
         inputs = x
         for res_block in self.res_blocks:

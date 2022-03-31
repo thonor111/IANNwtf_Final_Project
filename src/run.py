@@ -2,6 +2,8 @@ import tensorflow as tf
 import tensorflow.keras as K
 import tensorflow_datasets as tfds
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.manifold import TSNE
 from input_pipeline import InputPipeline
 import training_loop
 from generator import Generator
@@ -18,12 +20,11 @@ input_pipeline = InputPipeline()
 input_pipeline.train_tokenizer(train_data)
 
 # preprocess datasplits
-# using the GAN version to be able to test the GAN
 train_data = train_data.apply(input_pipeline.prepare_data)
 test_data = test_data.apply(input_pipeline.prepare_data)
 
-train_vae = True
-train_gan = True
+train_vae = False
+train_gan = False
 
 
 ##################################################################
@@ -33,7 +34,7 @@ train_gan = True
 num_epochs_vae = 3
 alpha_vae = 0.001
 
-# Initialize Model
+# Initialize the VAE
 vocab_size = input_pipeline.vocab_size
 state_size = 600
 vae = VariationalAutoEncoder(vocab_size=vocab_size, state_size=state_size)
@@ -56,7 +57,7 @@ if train_vae:
 
         # training (and checking in with training)
         epoch_losses_vae = []
-        for embedding, target, sentiment, noise in train_data.take(2000):
+        for embedding, target, sentiment, noise in train_data.take(1000):
             train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                           inputs=embedding,
                                                           target=target,
@@ -67,9 +68,9 @@ if train_vae:
         # track training loss
         train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
         # track test loss
-        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(50), loss_function_vae))
+        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(10), loss_function_vae))
         print(f"Epoch {epoch} of the VAE ending with an average training loss of {tf.reduce_mean(epoch_losses_vae)}")
-    vae.save_weights('saved_models/weights/vae')
+        vae.save_weights('saved_models/weights/vae')
 else:
     vae.load_weights('saved_models/weights/vae')
 
@@ -82,7 +83,7 @@ num_epochs_gan = 5
 alpha_generator = 0.00005
 alpha_discriminator = 0.00005
 
-# Initialize Model
+# Initialize GAN
 generator = Generator(state_size=state_size)
 discriminator = Discriminator()
 
@@ -90,6 +91,7 @@ discriminator = Discriminator()
 optimizer_generator = K.optimizers.RMSprop(alpha_generator)
 optimizer_discriminator = K.optimizers.RMSprop(alpha_discriminator)
 
+# loss function
 loss_function_sentiment = K.losses.MeanSquaredError()
 
 # initialize lists for later visualization.
@@ -109,7 +111,7 @@ if train_gan:
         # training (and checking in with training)
         epoch_losses_discriminator = []
         epoch_losses_generator = []
-        for embedding, target, sentiment, noise in train_data.take(2000):
+        for embedding, target, sentiment, noise in train_data.take(1000):
             learning_step += 1
             encoded_sentence = vae.encode(embedding)
             train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
@@ -128,19 +130,25 @@ if train_gan:
         # track test loss
         train_losses_generator.append(tf.reduce_mean(epoch_losses_generator))
         test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator,
-                                                                                   test_data.take(50), vae,
+                                                                                   test_data.take(10), vae,
                                                                                    loss_function_sentiment)
         test_losses_generator.append(test_loss_generator)
         test_losses_discriminator.append(test_loss_discriminator)
         print(f"Epoch {epoch} of the GAN ending with an average Generator training loss of {tf.reduce_mean(epoch_losses_generator)} and an average discriminator training loss of {tf.reduce_mean(epoch_losses_discriminator)}")
-    generator.save_weights('saved_models/weights/generator')
-    discriminator.save_weights('saved_models/weights/discriminator')
+        generator.save_weights('saved_models/weights/generator')
+        discriminator.save_weights('saved_models/weights/discriminator')
 else:
     generator.load_weights('saved_models/weights/generator')
     discriminator.load_weights('saved_models/weights/discriminator')
 
+test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator, test_data.take(5), vae, loss_function_sentiment)
+
+##################################################################
+# Generating Sentences
+##################################################################
+
 print('Generated Sentences:')
-for embedding, target, sentiment, noise in test_data.take(10):
+for embedding, target, sentiment, noise in test_data.take(50):
     sentiment_vector = tf.transpose(tf.multiply(tf.transpose(tf.ones_like(noise)), tf.cast(sentiment, tf.float32)))
     generator_input = tf.concat((noise, sentiment_vector), axis=-1)
     generated_states = generator(generator_input, training=False)
@@ -164,7 +172,10 @@ for embedding, target, sentiment, noise in test_data.take(10):
             print('Sentiment: Positive; Sentence: ')
         print(sentence, '\n')
 
-# plotting of the training losses
+##################################################################
+# Plotting of the Losses during Training
+##################################################################
+
 if train_vae and train_gan:
     plt.figure()
     line1, = plt.plot(train_losses_vae)
@@ -178,7 +189,6 @@ if train_vae and train_gan:
     plt.legend((line1, line2, line3, line4, line5, line6), ("Train losses VAE", "Test Losses VAE", "Train losses Discriminator", "Test losses Discriminator", "Train losses Generator", "Test losses Generator"))
     plt.show()
 
-# plotting of the training losses
 if train_vae:
     plt.figure()
     line1, = plt.plot(train_losses_vae)
@@ -188,7 +198,6 @@ if train_vae:
     plt.legend((line1, line2), ("Train losses VAE", "Test Losses VAE"))
     plt.show()
 
-# plotting of the training losses
 if train_gan:
     plt.figure()
     line1, = plt.plot(train_losses_discriminator)
@@ -199,3 +208,34 @@ if train_gan:
     plt.ylabel("Losses")
     plt.legend((line1, line2, line3, line4), ("Train losses Discriminator", "Test losses Discriminator", "Train losses Generator", "Test losses Generator"))
     plt.show()
+
+##################################################################
+# Training of the Latent space of the Encoded Sentences
+##################################################################
+
+number_points = 50
+embeddings = None
+types = None
+for embedding, target, sentiment, noise in test_data.take(number_points):
+    sentiment_vector = tf.transpose(tf.multiply(tf.transpose(tf.ones_like(noise)), tf.cast(sentiment, tf.float32)))
+    generator_input = tf.concat((noise, sentiment_vector), axis=-1)
+    generation = generator(generator_input, training=False)
+    encoded_sentence = vae.encode(embedding)
+    sentiment = sentiment.numpy()
+    if embeddings is None:
+        embeddings = np.concatenate((generation, encoded_sentence), axis = 0)
+        types = [sentiment[0], sentiment[1], 2 + sentiment[0], 2 + sentiment[1]]
+    else:
+        embeddings = np.concatenate((embeddings, generation), axis = 0)
+        embeddings = np.concatenate((embeddings, encoded_sentence), axis = 0)
+        types = np.concatenate((types, [sentiment[0], sentiment[1], 2 + sentiment[0], 2 + sentiment[1]]), axis=0)
+points_embedded = TSNE(n_components=2, learning_rate='auto', init='pca').fit_transform(embeddings)
+
+label = ["Generated negative", "Generated positive", "Real negative", "Real positive"]
+figure, ax = plt.subplots()
+scatter = ax.scatter(points_embedded[:,0], points_embedded[:,1], c=types)
+handels, labels = scatter.legend_elements()
+legend = ax.legend(handels, label, loc="upper right")
+ax.add_artist(legend)
+plt.legend()
+plt.show()
