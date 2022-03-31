@@ -6,7 +6,7 @@ Repository of the Final project "Generating Optionated Movie Results using GANs"
 Script that trains both Models and uses the trained models to generate movie reviews afterwards
 
 ## vae.py
-The class resembling the Variational Autoencoder
+The class containing the components of the Variational Autoencoder
 
 ## generator.py
 The class of the Generator of the Generative Adversarial Network
@@ -21,7 +21,7 @@ The class holding the logic how to train and tests the VAE and the GAN
 The class preparing the dataset for the models
 
 ## vocab.txt
-The vocabulatory used by the Tokenizer in input_pipeline.py
+The vocabulary used by the Tokenizer in input_pipeline.py
 
 ## saved models
 The weights of both the VAE and GAN, can be used by setting train_gan and train_vae to false in run.py
