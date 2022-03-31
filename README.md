@@ -2,7 +2,7 @@
 
 Repository of the Final project "Generating Opinionated Movie Results using GANs" by Lara McDonald and Thomas Nortmann in the course "Implementing ANNs with TensorFlow" in the WS 2021/22.
 
-##### Note: We met with Kristina on March 25th to discuss our current progress. 
+#### Note: We met with Kristina on March 25th to discuss our current progress. 
 
 ## run.py
 Script that trains both Models and uses the trained models to generate movie reviews afterwards
