@@ -52,11 +52,26 @@ class InputPipeline:
         tokenized_text = tf.expand_dims(tokenized_text, -1)
         return tokenized_text, label
 
+    # This was used to shorten the sentences
+    # def shorten(self, sentence, sentiment):
+    #     sentence = tf.slice(sentence, [0, 0], [self.sentence_length, 1])
+    #     return sentence, sentiment
+
     def prepare_data(self, data):
         # remove parts that are not words
         data = data.map(lambda sentence, sentiment: (tf.strings.regex_replace(sentence, "[^a-z A-Z]", ""), sentiment))
         # tokenizing the text
         data = data.map(self.tokenize_data)
+
+        # This was used to shorten the sentences
+        # # adding end to the end of every sentence to be able to achieve a minimum sentence length
+        # data = data.map(lambda embedding, sentiment: (tf.concat((embedding,
+        #                                                          tf.constant(self.end_token, dtype=tf.int64,
+        #                                                                      shape=(self.sentence_length, 1))), axis=0),
+        #                                               sentiment))
+        #
+        # # shortening all sentences to the same length
+        # data = data.map(lambda sentence, sentiment: self.shorten(sentence, sentiment))
 
         # adding start and end to every sentence
         data = data.map(lambda embedding, sentiment: (tf.concat((tf.constant(self.start_token, dtype=tf.int64,

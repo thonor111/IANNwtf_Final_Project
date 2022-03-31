@@ -57,7 +57,7 @@ if train_vae:
 
         # training (and checking in with training)
         epoch_losses_vae = []
-        for embedding, target, sentiment, noise in train_data.take(1000):
+        for embedding, target, sentiment, noise in train_data:
             train_loss_vae = training_loop.train_step_vae(vae=vae,
                                                           inputs=embedding,
                                                           target=target,
@@ -68,7 +68,7 @@ if train_vae:
         # track training loss
         train_losses_vae.append(tf.reduce_mean(epoch_losses_vae))
         # track test loss
-        test_losses_vae.append(training_loop.test_step_vae(vae, test_data.take(10), loss_function_vae))
+        test_losses_vae.append(training_loop.test_step_vae(vae, test_data, loss_function_vae))
         print(f"Epoch {epoch} of the VAE ending with an average training loss of {tf.reduce_mean(epoch_losses_vae)}")
         vae.save_weights('saved_models/weights/vae')
 else:
@@ -111,7 +111,7 @@ if train_gan:
         # training (and checking in with training)
         epoch_losses_discriminator = []
         epoch_losses_generator = []
-        for embedding, target, sentiment, noise in train_data.take(1000):
+        for embedding, target, sentiment, noise in train_data:
             learning_step += 1
             encoded_sentence = vae.encode(embedding)
             train_loss_discriminator, train_loss_generator = training_loop.train_step_gan(generator, discriminator,
@@ -130,7 +130,7 @@ if train_gan:
         # track test loss
         train_losses_generator.append(tf.reduce_mean(epoch_losses_generator))
         test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator,
-                                                                                   test_data.take(10), vae,
+                                                                                   test_data, vae,
                                                                                    loss_function_sentiment)
         test_losses_generator.append(test_loss_generator)
         test_losses_discriminator.append(test_loss_discriminator)
@@ -141,7 +141,6 @@ else:
     generator.load_weights('saved_models/weights/generator')
     discriminator.load_weights('saved_models/weights/discriminator')
 
-test_loss_generator, test_loss_discriminator = training_loop.test_step_gan(generator, discriminator, test_data.take(5), vae, loss_function_sentiment)
 
 ##################################################################
 # Generating Sentences
